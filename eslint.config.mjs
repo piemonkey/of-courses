@@ -12,18 +12,18 @@
  *     npx eslint --inspect-config
  *
  */
-import globals from 'globals';
-import js from '@eslint/js';
+import globals from 'globals'
+import js from '@eslint/js'
 
-import ts from 'typescript-eslint';
+import ts from 'typescript-eslint'
 
-import ember from 'eslint-plugin-ember/recommended';
+import ember from 'eslint-plugin-ember/recommended'
 
-import eslintConfigPrettier from 'eslint-config-prettier';
-import qunit from 'eslint-plugin-qunit';
-import n from 'eslint-plugin-n';
+import eslintConfigPrettier from 'eslint-config-prettier'
+import qunit from 'eslint-plugin-qunit'
+import n from 'eslint-plugin-n'
 
-import babelParser from '@babel/eslint-parser';
+import babelParser from '@babel/eslint-parser'
 
 const parserOptions = {
   esm: {
@@ -33,11 +33,10 @@ const parserOptions = {
     },
     ts: {
       projectService: true,
-      project: true,
       tsconfigRootDir: import.meta.dirname,
     },
   },
-};
+}
 
 export default ts.config(
   js.configs.recommended,
@@ -133,4 +132,4 @@ export default ts.config(
       },
     },
   },
-);
+)

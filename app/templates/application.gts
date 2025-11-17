@@ -1,5 +1,4 @@
-import { pageTitle } from 'ember-page-title';
-
+import { pageTitle } from 'ember-page-title'
 
 <template>
   {{pageTitle "OffCourses"}}

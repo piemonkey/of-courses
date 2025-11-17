@@ -1,7 +1,7 @@
 const {
   babelCompatSupport,
   templateCompatSupport,
-} = require('@embroider/compat/babel');
+} = require('@embroider/compat/babel')
 
 module.exports = {
   plugins: [
@@ -47,4 +47,4 @@ module.exports = {
   generatorOpts: {
     compact: false,
   },
-};
+}

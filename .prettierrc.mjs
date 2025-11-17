@@ -1,6 +1,7 @@
 export default {
   plugins: ['prettier-plugin-ember-template-tag'],
   singleQuote: true,
+  semi: false,
   overrides: [
     {
       files: ['*.js', '*.ts', '*.cjs', '.mjs', '.cts', '.mts', '.cts'],
@@ -34,4 +35,4 @@ export default {
       },
     },
   ],
-};
+}
