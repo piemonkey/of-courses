@@ -1,13 +1,11 @@
 import { get } from '@ember/helper';
 import Component from '@glimmer/component';
 import { tracked } from 'tracked-built-ins';
+import { meals, people } from 'off-courses/services/splitter';
 
 export interface BouffeSignature {
   Element: null;
 }
-
-const people = ['Rich', 'Gaelle', 'Soura', 'Leo', 'Maïlys', 'Gobs'] as const
-const meals = ['breakfast', 'lunch', 'dinner'] as const
 
 export default class Bouffe extends Component<BouffeSignature> {
   mealCounts = tracked(Object.fromEntries(people.map((person) => [person, { breakfast: 0, lunch: 0, dinner: 0 }])))
