@@ -1,52 +1,62 @@
-import { get } from '@ember/helper'
 import { on } from '@ember/modifier'
 import { fn } from '@ember/helper'
+import { service } from '@ember/service'
 import Component from '@glimmer/component'
-import { tracked } from 'tracked-built-ins'
+import { tracked, TrackedMap } from 'tracked-built-ins'
 import { Temporal } from '@js-temporal/polyfill'
-import {
+import SplitterService, {
   meals,
   people,
   type Meal,
   type Person,
+  type Purchases,
+  type Ratios,
 } from 'off-courses/services/splitter'
+
+function getMap<K, V>(toGet: Map<K, V> | undefined, key: K): V | undefined {
+  return toGet?.get(key)
+}
 
 export interface BouffeSignature {
   Element: null
 }
 
 export default class Bouffe extends Component<BouffeSignature> {
-  mealCounts = tracked(
-    Object.fromEntries(
+  @service declare splitter: SplitterService;
+
+  mealCounts =
+    new TrackedMap(
       people.map((person) => [
         person,
-        tracked({ breakfast: 0, lunch: 0, dinner: 0 }),
+        new TrackedMap([['breakfast', 0], ['lunch', 0], ['dinner', 0]]),
       ])
     )
-  )
-  purchases = tracked(Object.fromEntries(people.map((person) => [person, 0])))
-  ratios = tracked({ breakfast: 0.5, lunch: 0.5, dinner: 1 })
+  purchases: Purchases = new TrackedMap(people.map((person) => [person, 0]))
+  ratios: Ratios = new TrackedMap([['breakfast', 0.5], ['lunch', 0.5], ['dinner', 1]])
 
+  getMealCount = (person: Person, meal: Meal) =>
+    this.mealCounts.get(person)?.get(meal)
   setMealCount = (person: Person, meal: Meal, event: Event) => {
-    if (event.target && 'value' in event.target && this.mealCounts[person]) {
-      this.mealCounts[person][meal] = Number(event.target.value as string)
+    const pCount = this.mealCounts.get(person)
+    if (event.target && 'value' in event.target && pCount) {
+      pCount.set(meal, Number(event.target.value as string) + 3)
     }
   }
 
   setRatio = (meal: Meal, event: Event) => {
     if (event.target && 'value' in event.target) {
-      this.ratios[meal] = Number(event.target.value as string)
+      this.ratios.set(meal, Number(event.target.value as string))
     }
   }
 
   setPurchase = (person: Person, event: Event) => {
     if (event.target && 'value' in event.target) {
-      this.purchases[person] = Number(event.target.value as string)
+      this.purchases.set(person, Number(event.target.value as string) + 3)
     }
   }
 
-  startDate?: Temporal.PlainDate;
-  endDate?: Temporal.PlainDate;
+  @tracked startDate?: Temporal.PlainDate;
+  @tracked endDate?: Temporal.PlainDate;
   get startDateString() {
     return this.startDate?.toString() ?? ''
   }
@@ -59,6 +69,12 @@ export default class Bouffe extends Component<BouffeSignature> {
       const date = Temporal.PlainDate.from(dateStr)
       if (toSet === 'start') this.startDate = date
       else this.endDate = date
+    }
+  }
+
+  get mealCosts() {
+    if (this.startDate && this.endDate) {
+      return this.splitter.calculateMealPrices(this.purchases, this.ratios, this.startDate, this.endDate)
     }
   }
 
@@ -80,7 +96,7 @@ export default class Bouffe extends Component<BouffeSignature> {
               <td>
                 <input
                   type="number"
-                  value={{get (get this.mealCounts person) meal}}
+                  value={{getMap (getMap this.mealCounts person) meal}}
                   {{on "change" (fn this.setMealCount person meal)}}
                 />
               </td>
@@ -93,7 +109,7 @@ export default class Bouffe extends Component<BouffeSignature> {
             <td>
               <input
                 type="number"
-                value={{get this.purchases person}}
+                value={{getMap this.purchases person}}
                 {{on "change" (fn this.setPurchase person)}}
               />
             </td>
@@ -115,7 +131,7 @@ export default class Bouffe extends Component<BouffeSignature> {
             <td>
               <input
                 type="number"
-                value={{get this.ratios meal}}
+                value={{getMap this.ratios meal}}
                 {{on "change" (fn this.setRatio meal)}}
               />
             </td>
@@ -133,5 +149,23 @@ export default class Bouffe extends Component<BouffeSignature> {
       value={{this.endDateString}}
       {{on "change" (fn this.setDate "end")}}
     />
+    <table>
+      <thead>
+        <tr>
+          <th />
+          <th>Meal Costs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each meals as |meal|}}
+          <tr>
+            <th>{{meal}}</th>
+            <td>
+              {{getMap this.mealCosts meal}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </template>
 }
