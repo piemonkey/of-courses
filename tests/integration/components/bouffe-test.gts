@@ -14,7 +14,7 @@ module('Integration | Component | bouffe', function (hooks) {
 
     await render(<template><Bouffe /></template>)
 
-    assert.dom().hasText(/Money spent/)
+    assert.dom().hasText(/Money paid/)
 
     //     // Template block usage:
     //     await render(<template>

@@ -1,7 +1,13 @@
 import { module, test } from 'qunit'
 import { Temporal } from '@js-temporal/polyfill'
 import { setupTest } from 'off-courses/tests/helpers'
-import type { Purchases, Ratios } from 'off-courses/services/splitter'
+import {
+  meals,
+  type Meal,
+  type MealCounts,
+  type Purchases,
+  type Ratios,
+} from 'off-courses/services/splitter'
 
 module('Unit | Service | splitter', function (hooks) {
   setupTest(hooks)
@@ -19,7 +25,11 @@ module('Unit | Service | splitter', function (hooks) {
         ['Rich', 5],
         ['Soura', 5],
       ])
-      const ratios: Ratios = new Map([['breakfast', 0.25], ['lunch', 0.25], ['dinner', 0.5]])
+      const ratios: Ratios = new Map([
+        ['breakfast', 0.25],
+        ['lunch', 0.25],
+        ['dinner', 0.5],
+      ])
 
       const res = service.calculateMealPrices(purchases, ratios, start, end)
 
@@ -41,7 +51,11 @@ module('Unit | Service | splitter', function (hooks) {
         ['Rich', 5],
         ['Soura', 5],
       ])
-      const ratios: Ratios = new Map([['breakfast', 1], ['lunch', 2], ['dinner', 3]])
+      const ratios: Ratios = new Map([
+        ['breakfast', 1],
+        ['lunch', 2],
+        ['dinner', 3],
+      ])
 
       const res = service.calculateMealPrices(purchases, ratios, start, end)
 
@@ -49,6 +63,35 @@ module('Unit | Service | splitter', function (hooks) {
       assert.equal(res.get('lunch'), 0.5)
       assert.equal(res.get('dinner'), 0.75)
       assert.equal(res.size, 3)
+    })
+  })
+
+  module('calculateSpent', function () {
+    test('Works out a very easy case', function (assert) {
+      const service = this.owner.lookup('service:splitter')
+      const mealCounts: MealCounts = new Map([
+        ['Gaelle', new Map(meals.map((meal: Meal) => [meal, 5]))],
+        ['Gobs', new Map(meals.map((meal: Meal) => [meal, 5]))],
+        ['Leo', new Map(meals.map((meal: Meal) => [meal, 5]))],
+        ['Maïlys', new Map(meals.map((meal: Meal) => [meal, 5]))],
+        ['Rich', new Map(meals.map((meal: Meal) => [meal, 5]))],
+        ['Soura', new Map(meals.map((meal: Meal) => [meal, 5]))],
+      ])
+      const mealPrices: Ratios = new Map([
+        ['breakfast', 1],
+        ['lunch', 2],
+        ['dinner', 3],
+      ])
+
+      const res = service.calculateSpent(mealCounts, mealPrices)
+
+      assert.equal(res.get('Gaelle'), 30)
+      assert.equal(res.get('Gobs'), 30)
+      assert.equal(res.get('Leo'), 30)
+      assert.equal(res.get('Maïlys'), 30)
+      assert.equal(res.get('Rich'), 30)
+      assert.equal(res.get('Soura'), 30)
+      assert.equal(res.size, 6)
     })
   })
 })

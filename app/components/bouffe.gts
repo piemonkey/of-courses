@@ -8,6 +8,7 @@ import SplitterService, {
   meals,
   people,
   type Meal,
+  type MealCounts,
   type Person,
   type Purchases,
   type Ratios,
@@ -22,17 +23,24 @@ export interface BouffeSignature {
 }
 
 export default class Bouffe extends Component<BouffeSignature> {
-  @service declare splitter: SplitterService;
+  @service declare splitter: SplitterService
 
-  mealCounts =
-    new TrackedMap(
-      people.map((person) => [
-        person,
-        new TrackedMap([['breakfast', 0], ['lunch', 0], ['dinner', 0]]),
-      ])
-    )
+  mealCounts: MealCounts = new TrackedMap(
+    people.map((person) => [
+      person,
+      new TrackedMap([
+        ['breakfast', 0],
+        ['lunch', 0],
+        ['dinner', 0],
+      ]),
+    ])
+  )
   purchases: Purchases = new TrackedMap(people.map((person) => [person, 0]))
-  ratios: Ratios = new TrackedMap([['breakfast', 0.5], ['lunch', 0.5], ['dinner', 1]])
+  ratios: Ratios = new TrackedMap([
+    ['breakfast', 0.5],
+    ['lunch', 0.5],
+    ['dinner', 1],
+  ])
 
   getMealCount = (person: Person, meal: Meal) =>
     this.mealCounts.get(person)?.get(meal)
@@ -55,8 +63,8 @@ export default class Bouffe extends Component<BouffeSignature> {
     }
   }
 
-  @tracked startDate?: Temporal.PlainDate;
-  @tracked endDate?: Temporal.PlainDate;
+  @tracked startDate?: Temporal.PlainDate
+  @tracked endDate?: Temporal.PlainDate
   get startDateString() {
     return this.startDate?.toString() ?? ''
   }
@@ -74,9 +82,23 @@ export default class Bouffe extends Component<BouffeSignature> {
 
   get mealCosts() {
     if (this.startDate && this.endDate) {
-      return this.splitter.calculateMealPrices(this.purchases, this.ratios, this.startDate, this.endDate)
+      return this.splitter.calculateMealPrices(
+        this.purchases,
+        this.ratios,
+        this.startDate,
+        this.endDate
+      )
     }
   }
+
+  get debts() {
+    if (this.mealCosts) {
+      return this.splitter.calculateSpent(this.mealCounts, this.mealCosts)
+    }
+  }
+
+  calcBalance = (person: Person) =>
+    (this.debts?.get(person) ?? 0) - (this.purchases.get(person) ?? 0)
 
   <template>
     <table>
@@ -104,7 +126,7 @@ export default class Bouffe extends Component<BouffeSignature> {
           </tr>
         {{/each}}
         <tr>
-          <th>Money spent</th>
+          <th>Money paid</th>
           {{#each people as |person|}}
             <td>
               <input
@@ -162,6 +184,28 @@ export default class Bouffe extends Component<BouffeSignature> {
             <th>{{meal}}</th>
             <td>
               {{getMap this.mealCosts meal}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <table>
+      <thead>
+        <tr>
+          <th />
+          <th>Total 'spent'</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each people as |person|}}
+          <tr>
+            <th>{{person}}</th>
+            <td>
+              {{getMap this.debts person}}
+            </td>
+            <td>
+              {{this.calcBalance person}}
             </td>
           </tr>
         {{/each}}

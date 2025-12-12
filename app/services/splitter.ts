@@ -15,6 +15,7 @@ export type Meal = (typeof meals)[number]
 
 export type Purchases = Map<Person, number>
 export type Ratios = Map<Meal, number>
+export type MealCounts = Map<Person, Map<Meal, number>>
 
 export default class SplitterService extends Service {
   calculateMealPrices(
@@ -40,7 +41,17 @@ export default class SplitterService extends Service {
       ])
     ) as Ratios
   }
-  calculateDebts() {}
+  calculateSpent(mealCounts: MealCounts, mealPrices: Ratios) {
+    return new Map(
+      Array.from(mealCounts.entries()).map(([person, counts]) => [
+        person,
+        Array.from(counts.entries()).reduce(
+          (total, [meal, count]) => total + count * (mealPrices.get(meal) ?? 0),
+          0
+        ),
+      ])
+    )
+  }
 }
 
 declare module '@ember/service' {
