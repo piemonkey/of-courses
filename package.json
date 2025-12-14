@@ -30,9 +30,7 @@
     "./tests/*": "./tests/*",
     "./*": "./app/*"
   },
-  "dependencies": {
-    "@js-temporal/polyfill": "^0.5.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@babel/eslint-parser": "^7.28.4",

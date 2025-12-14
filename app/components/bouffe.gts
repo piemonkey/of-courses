@@ -2,8 +2,7 @@ import { on } from '@ember/modifier'
 import { fn } from '@ember/helper'
 import { service } from '@ember/service'
 import Component from '@glimmer/component'
-import { tracked, TrackedMap } from 'tracked-built-ins'
-import { Temporal } from '@js-temporal/polyfill'
+import { TrackedMap } from 'tracked-built-ins'
 import SplitterService, {
   meals,
   people,
@@ -16,6 +15,11 @@ import SplitterService, {
 
 function getMap<K, V>(toGet: Map<K, V> | undefined, key: K): V | undefined {
   return toGet?.get(key)
+}
+function showCurrency(amount: number | undefined): string | undefined {
+  if (amount && Number.isFinite(amount)) {
+    return `${amount.toFixed(2)}€`
+  }
 }
 
 export interface BouffeSignature {
@@ -47,7 +51,7 @@ export default class Bouffe extends Component<BouffeSignature> {
   setMealCount = (person: Person, meal: Meal, event: Event) => {
     const pCount = this.mealCounts.get(person)
     if (event.target && 'value' in event.target && pCount) {
-      pCount.set(meal, Number(event.target.value as string) + 3)
+      pCount.set(meal, Number(event.target.value as string))
     }
   }
 
@@ -59,36 +63,16 @@ export default class Bouffe extends Component<BouffeSignature> {
 
   setPurchase = (person: Person, event: Event) => {
     if (event.target && 'value' in event.target) {
-      this.purchases.set(person, Number(event.target.value as string) + 3)
-    }
-  }
-
-  @tracked startDate?: Temporal.PlainDate
-  @tracked endDate?: Temporal.PlainDate
-  get startDateString() {
-    return this.startDate?.toString() ?? ''
-  }
-  get endDateString() {
-    return this.endDate?.toString() ?? ''
-  }
-  setDate = (toSet: 'start' | 'end', event: Event) => {
-    if (event.target && 'value' in event.target) {
-      const dateStr = event.target.value as string
-      const date = Temporal.PlainDate.from(dateStr)
-      if (toSet === 'start') this.startDate = date
-      else this.endDate = date
+      this.purchases.set(person, Number(event.target.value as string))
     }
   }
 
   get mealCosts() {
-    if (this.startDate && this.endDate) {
-      return this.splitter.calculateMealPrices(
-        this.purchases,
-        this.ratios,
-        this.startDate,
-        this.endDate
-      )
-    }
+    return this.splitter.calculateMealPrices(
+      this.splitter.calculateMealTotals(this.mealCounts),
+      this.purchases,
+      this.ratios,
+    )
   }
 
   get debts() {
@@ -100,7 +84,7 @@ export default class Bouffe extends Component<BouffeSignature> {
   calcBalance = (person: Person) =>
     (this.debts?.get(person) ?? 0) - (this.purchases.get(person) ?? 0)
 
-  <template>
+  ;<template>
     <table>
       <thead>
         <tr>
@@ -161,16 +145,6 @@ export default class Bouffe extends Component<BouffeSignature> {
         {{/each}}
       </tbody>
     </table>
-    <input
-      type="date"
-      value={{this.startDateString}}
-      {{on "change" (fn this.setDate "start")}}
-    />
-    <input
-      type="date"
-      value={{this.endDateString}}
-      {{on "change" (fn this.setDate "end")}}
-    />
     <table>
       <thead>
         <tr>
@@ -183,7 +157,7 @@ export default class Bouffe extends Component<BouffeSignature> {
           <tr>
             <th>{{meal}}</th>
             <td>
-              {{getMap this.mealCosts meal}}
+              {{showCurrency (getMap this.mealCosts meal)}}
             </td>
           </tr>
         {{/each}}
@@ -202,10 +176,10 @@ export default class Bouffe extends Component<BouffeSignature> {
           <tr>
             <th>{{person}}</th>
             <td>
-              {{getMap this.debts person}}
+              {{showCurrency (getMap this.debts person)}}
             </td>
             <td>
-              {{this.calcBalance person}}
+              {{showCurrency (this.calcBalance person)}}
             </td>
           </tr>
         {{/each}}
