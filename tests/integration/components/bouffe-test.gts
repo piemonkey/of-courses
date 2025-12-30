@@ -1,7 +1,7 @@
 import { module, test } from 'qunit'
-import { setupRenderingTest } from 'off-courses/tests/helpers'
+import { setupRenderingTest } from 'of-courses/tests/helpers'
 import { render } from '@ember/test-helpers'
-import Bouffe from 'off-courses/components/bouffe'
+import Bouffe from 'of-courses/components/bouffe'
 
 module('Integration | Component | bouffe', function (hooks) {
   setupRenderingTest(hooks)

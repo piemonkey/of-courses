@@ -1,11 +1,11 @@
 {
-  "name": "off-courses",
-  "version": "0.0.0",
+  "name": "of-courses",
+  "version": "0.1.0",
   "private": true,
-  "description": "Small description for off-courses goes here",
+  "description": "Web app to split cost of groceries (des courses) between housemates, for a very specific case",
   "repository": "",
-  "license": "MIT",
-  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "author": "piemonkey",
   "directories": {
     "doc": "doc",
     "test": "tests"

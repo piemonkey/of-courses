@@ -1,7 +1,7 @@
 import loadConfigFromMeta from '@embroider/config-meta-loader'
 import { assert } from '@ember/debug'
 
-const config = loadConfigFromMeta('off-courses') as unknown
+const config = loadConfigFromMeta('of-courses') as unknown
 
 assert('config is not an object', typeof config === 'object' && config !== null)
 assert(

@@ -1,11 +1,11 @@
 import { module, test } from 'qunit'
 import { render } from '@ember/test-helpers'
 import { hash } from '@ember/helper'
-import { setupRenderingTest } from 'off-courses/tests/helpers'
+import { setupRenderingTest } from 'of-courses/tests/helpers'
 import saveOnUnload, {
   wndw,
   loadState,
-} from 'off-courses/modifiers/save-on-unload'
+} from 'of-courses/modifiers/save-on-unload'
 
 module('Integration | Modifier | save-on-unload', function (hooks) {
   setupRenderingTest(hooks)

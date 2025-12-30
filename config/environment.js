@@ -2,7 +2,7 @@
 
 module.exports = function (environment) {
   const ENV = {
-    modulePrefix: 'off-courses',
+    modulePrefix: 'of-courses',
     environment,
     rootURL: '/',
     locationType: 'history',

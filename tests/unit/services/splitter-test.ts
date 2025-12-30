@@ -1,5 +1,5 @@
 import { module, test } from 'qunit'
-import { setupTest } from 'off-courses/tests/helpers'
+import { setupTest } from 'of-courses/tests/helpers'
 import {
   meals,
   type Meal,
@@ -7,7 +7,7 @@ import {
   type MealTotals,
   type Purchases,
   type Ratios,
-} from 'off-courses/services/splitter'
+} from 'of-courses/services/splitter'
 
 module('Unit | Service | splitter', function (hooks) {
   setupTest(hooks)

@@ -1,8 +1,8 @@
-import Bouffe from 'off-courses/components/bouffe'
+import Bouffe from 'of-courses/components/bouffe'
 import { pageTitle } from 'ember-page-title'
 
 <template>
-  {{pageTitle "OffCourses"}}
+  {{pageTitle "OfCourses"}}
   <Bouffe />
 
   {{outlet}}

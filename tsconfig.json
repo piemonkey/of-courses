@@ -7,8 +7,8 @@
   "compilerOptions": {
     "allowJs": true,
     "paths": {
-      "off-courses/tests/*": ["./tests/*"],
-      "off-courses/*": ["./app/*"],
+      "of-courses/tests/*": ["./tests/*"],
+      "of-courses/*": ["./app/*"],
       "*": ["./types/*"]
     },
     "types": ["ember-source/types", "@embroider/core/virtual", "vite/client"]

@@ -12,8 +12,8 @@ import SplitterService, {
   type Person,
   type Purchases,
   type Ratios,
-} from 'off-courses/services/splitter'
-import saveOnUnload, { loadState } from 'off-courses/modifiers/save-on-unload'
+} from 'of-courses/services/splitter'
+import saveOnUnload, { loadState } from 'of-courses/modifiers/save-on-unload'
 
 function getMap<K, V>(toGet: Map<K, V> | undefined, key: K): V | undefined {
   return toGet?.get(key)
