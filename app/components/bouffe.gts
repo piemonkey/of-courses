@@ -1,6 +1,7 @@
 import { on } from '@ember/modifier'
-import { fn } from '@ember/helper'
+import { fn, hash } from '@ember/helper'
 import { service } from '@ember/service'
+import type Owner from '@ember/owner'
 import Component from '@glimmer/component'
 import { TrackedMap } from 'tracked-built-ins'
 import SplitterService, {
@@ -12,6 +13,7 @@ import SplitterService, {
   type Purchases,
   type Ratios,
 } from 'off-courses/services/splitter'
+import saveOnUnload, { loadState } from 'off-courses/modifiers/save-on-unload'
 
 function getMap<K, V>(toGet: Map<K, V> | undefined, key: K): V | undefined {
   return toGet?.get(key)
@@ -28,6 +30,14 @@ export interface BouffeSignature {
 
 export default class Bouffe extends Component<BouffeSignature> {
   @service declare splitter: SplitterService
+
+  constructor(owner: Owner, args: object) {
+    super(owner, args)
+    const saved = loadState()
+    if (saved.mealCounts) this.mealCounts = saved.mealCounts as MealCounts
+    if (saved.purchases) this.purchases = saved.purchases as Purchases
+    if (saved.ratios) this.ratios = saved.ratios as Ratios
+  }
 
   mealCounts: MealCounts = new TrackedMap(
     people.map((person) => [
@@ -71,7 +81,7 @@ export default class Bouffe extends Component<BouffeSignature> {
     return this.splitter.calculateMealPrices(
       this.splitter.calculateMealTotals(this.mealCounts),
       this.purchases,
-      this.ratios,
+      this.ratios
     )
   }
 
@@ -83,9 +93,14 @@ export default class Bouffe extends Component<BouffeSignature> {
 
   calcBalance = (person: Person) =>
     (this.debts?.get(person) ?? 0) - (this.purchases.get(person) ?? 0)
-
-  ;<template>
-    <table>
+  <template>
+    <table
+      {{saveOnUnload
+        (hash
+          mealCounts=this.mealCounts purchases=this.purchases ratios=this.ratios
+        )
+      }}
+    >
       <thead>
         <tr>
           <th />

@@ -32,7 +32,7 @@ export default class SplitterService extends Service {
   calculateMealPrices(
     mealTotals: MealTotals,
     purchases: Purchases,
-    ratios: Ratios,
+    ratios: Ratios
   ): Ratios {
     const totalCost = Array.from(purchases.values()).reduce(
       (total, val) => total + val,
@@ -42,9 +42,12 @@ export default class SplitterService extends Service {
       (total, ratio) => total + ratio,
       0
     )
-    return new Map(Array.from(mealTotals.entries()).map(
-      ([meal, mealTotal]) => [meal, totalCost * (ratios.get(meal) ?? 1) / (ratioScaleFactor * mealTotal)],
-    ))
+    return new Map(
+      Array.from(mealTotals.entries()).map(([meal, mealTotal]) => [
+        meal,
+        (totalCost * (ratios.get(meal) ?? 1)) / (ratioScaleFactor * mealTotal),
+      ])
+    )
   }
 
   calculateSpent(mealCounts: MealCounts, mealPrices: Ratios) {
