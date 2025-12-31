@@ -3,7 +3,7 @@ import { fn, hash } from '@ember/helper'
 import { service } from '@ember/service'
 import type Owner from '@ember/owner'
 import Component from '@glimmer/component'
-import { TrackedMap } from 'tracked-built-ins'
+import { trackedMap } from '@ember/reactive/collections'
 import SplitterService, {
   meals,
   people,
@@ -39,18 +39,18 @@ export default class Bouffe extends Component<BouffeSignature> {
     if (saved.ratios) this.ratios = saved.ratios as Ratios
   }
 
-  mealCounts: MealCounts = new TrackedMap(
+  mealCounts: MealCounts = trackedMap(
     people.map((person) => [
       person,
-      new TrackedMap([
+      trackedMap([
         ['breakfast', 0],
         ['lunch', 0],
         ['dinner', 0],
       ]),
     ])
   )
-  purchases: Purchases = new TrackedMap(people.map((person) => [person, 0]))
-  ratios: Ratios = new TrackedMap([
+  purchases: Purchases = trackedMap(people.map((person) => [person, 0]))
+  ratios: Ratios = trackedMap([
     ['breakfast', 0.5],
     ['lunch', 0.5],
     ['dinner', 1],
@@ -93,7 +93,7 @@ export default class Bouffe extends Component<BouffeSignature> {
 
   calcBalance = (person: Person) =>
     (this.debts?.get(person) ?? 0) - (this.purchases.get(person) ?? 0)
-  <template>
+  ;<template>
     <table
       {{saveOnUnload
         (hash

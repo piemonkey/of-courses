@@ -1,5 +1,5 @@
 import { modifier } from 'ember-modifier'
-import { TrackedMap } from 'tracked-built-ins'
+import { trackedMap } from '@ember/reactive/collections'
 
 // For testing
 export const wndw = { document }
@@ -15,7 +15,7 @@ export function loadState() {
         'MAP' in val &&
         Array.isArray(val.MAP)
       ) {
-        return new TrackedMap(val.MAP)
+        return trackedMap(val.MAP)
       }
       return val
     }) as Record<string, unknown>
