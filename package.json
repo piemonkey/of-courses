@@ -24,7 +24,7 @@
     "lint:js:fix": "eslint . --fix",
     "lint:types": "glint",
     "start": "vite",
-    "test": "vite build --mode development && ember test --path dist"
+    "test": "vite build --mode development && ember test --path docs"
   },
   "exports": {
     "./tests/*": "./tests/*",
