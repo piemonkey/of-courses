@@ -11,7 +11,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --base '/of-courses/'",
     "format": "prettier . --cache --write",
     "lint": "concurrently \"pnpm:lint:*(!fix)\" --names \"lint:\" --prefixColors auto",
     "lint:css": "stylelint \"**/*.css\"",
