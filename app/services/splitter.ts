@@ -1,12 +1,12 @@
 import Service from '@ember/service'
 
 export const people = [
-  'Rich',
   'Gaelle',
-  'Soura',
+  'Gobs',
   'Leo',
   'Maïlys',
-  'Gobs',
+  'Rich',
+  'Soura',
 ] as const
 export type Person = (typeof people)[number]
 export const meals = ['breakfast', 'lunch', 'dinner'] as const

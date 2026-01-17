@@ -10,6 +10,7 @@ import SplitterService, {
   type Meal,
   type MealCounts,
   type Person,
+  type Privileges,
   type Purchases,
   type Ratios,
 } from 'of-courses/services/splitter'
@@ -36,6 +37,7 @@ export default class Bouffe extends Component<BouffeSignature> {
     const saved = loadState()
     if (saved.mealCounts) this.mealCounts = saved.mealCounts as MealCounts
     if (saved.purchases) this.purchases = saved.purchases as Purchases
+    if (saved.privileges) this.privileges = saved.privileges as Privileges
     if (saved.ratios) this.ratios = saved.ratios as Ratios
   }
 
@@ -50,6 +52,7 @@ export default class Bouffe extends Component<BouffeSignature> {
     ])
   )
   purchases: Purchases = trackedMap(people.map((person) => [person, 0]))
+  privileges: Privileges = trackedMap(people.map((person) => [person, 1]))
   ratios: Ratios = trackedMap([
     ['breakfast', 0.5],
     ['lunch', 0.5],
@@ -77,9 +80,15 @@ export default class Bouffe extends Component<BouffeSignature> {
     }
   }
 
+  setPrivilege = (person: Person, event: Event) => {
+    if (event.target && 'value' in event.target) {
+      this.privileges.set(person, Number(event.target.value as string))
+    }
+  }
+
   get mealCosts() {
     return this.splitter.calculateMealPrices(
-      this.splitter.calculateMealTotals(this.mealCounts),
+      this.splitter.calculateMealTotals(this.splitter.privilegeAdjustCounts(this.mealCounts, this.privileges)),
       this.purchases,
       this.ratios
     )
@@ -87,7 +96,7 @@ export default class Bouffe extends Component<BouffeSignature> {
 
   get debts() {
     if (this.mealCosts) {
-      return this.splitter.calculateSpent(this.mealCounts, this.mealCosts)
+      return this.splitter.calculateSpent(this.splitter.privilegeAdjustCounts(this.mealCounts, this.privileges), this.mealCosts)
     }
   }
 
@@ -97,7 +106,7 @@ export default class Bouffe extends Component<BouffeSignature> {
     <table
       {{saveOnUnload
         (hash
-          mealCounts=this.mealCounts purchases=this.purchases ratios=this.ratios
+          mealCounts=this.mealCounts purchases=this.purchases privileges=this.privileges ratios=this.ratios
         )
       }}
     >
@@ -132,6 +141,18 @@ export default class Bouffe extends Component<BouffeSignature> {
                 type="number"
                 value={{getMap this.purchases person}}
                 {{on "change" (fn this.setPurchase person)}}
+              />
+            </td>
+          {{/each}}
+        </tr>
+        <tr>
+          <th>Privilege factor</th>
+          {{#each people as |person|}}
+            <td>
+              <input
+                type="number"
+                value={{getMap this.privileges person}}
+                {{on "change" (fn this.setPrivilege person)}}
               />
             </td>
           {{/each}}
