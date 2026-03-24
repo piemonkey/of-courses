@@ -18,16 +18,29 @@ export type Ratios = Map<Meal, number>
 export type MealTotals = Map<Meal, number>
 export type MealCounts = Map<Person, MealTotals>
 
-function mapMap<K, V, O>(mapIn: Map<K, V>, fun: (key: K, val: V) => O): Map<K, O> {
-  return new Map(Array.from(mapIn.entries()).map(([key, val]) => [key, fun(key, val)]))
+export function mapMap<K, V, O>(
+  mapIn: Map<K, V>,
+  fun: (key: K, val: V) => O
+): Map<K, O> {
+  return new Map(
+    Array.from(mapIn.entries()).map(([key, val]) => [key, fun(key, val)])
+  )
 }
 
 export default class SplitterService extends Service {
-  privilegeAdjustCounts(mealCounts: MealCounts, privileges: Privileges): MealCounts {
+  privilegeAdjustCounts(
+    mealCounts: MealCounts,
+    privileges: Privileges
+  ): MealCounts {
     const allPrivs = Array.from(privileges.values())
-    const privNormalisation = allPrivs.length / allPrivs.reduce((total, priv) => total + priv)
+    const privNormalisation =
+      allPrivs.length / allPrivs.reduce((total, priv) => total + priv)
     return mapMap(mealCounts, (person, totals) =>
-      mapMap(totals, (_meal, count) => count * (privileges.get(person) ?? 1) * privNormalisation)
+      mapMap(
+        totals,
+        (_meal, count) =>
+          count * (privileges.get(person) ?? 1) * privNormalisation
+      )
     )
   }
 

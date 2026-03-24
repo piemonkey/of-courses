@@ -4,11 +4,14 @@ import { service } from '@ember/service'
 import type Owner from '@ember/owner'
 import Component from '@glimmer/component'
 import { trackedMap } from '@ember/reactive/collections'
+import { tracked } from '@glimmer/tracking'
 import SplitterService, {
+  mapMap,
   meals,
   people,
   type Meal,
   type MealCounts,
+  type MealTotals,
   type Person,
   type Privileges,
   type Purchases,
@@ -32,6 +35,11 @@ export interface BouffeSignature {
 export default class Bouffe extends Component<BouffeSignature> {
   @service declare splitter: SplitterService
 
+  @tracked isDirty = true
+  @tracked mealCosts: MealTotals | undefined
+  @tracked debts: Purchases | undefined
+  @tracked balances: Purchases | undefined
+
   constructor(owner: Owner, args: object) {
     super(owner, args)
     const saved = loadState()
@@ -39,6 +47,7 @@ export default class Bouffe extends Component<BouffeSignature> {
     if (saved.purchases) this.purchases = saved.purchases as Purchases
     if (saved.privileges) this.privileges = saved.privileges as Privileges
     if (saved.ratios) this.ratios = saved.ratios as Ratios
+    this.doCalculations()
   }
 
   mealCounts: MealCounts = trackedMap(
@@ -59,9 +68,8 @@ export default class Bouffe extends Component<BouffeSignature> {
     ['dinner', 1],
   ])
 
-  getMealCount = (person: Person, meal: Meal) =>
-    this.mealCounts.get(person)?.get(meal)
   setMealCount = (person: Person, meal: Meal, event: Event) => {
+    this.isDirty = true
     const pCount = this.mealCounts.get(person)
     if (event.target && 'value' in event.target && pCount) {
       pCount.set(meal, Number(event.target.value as string))
@@ -69,44 +77,56 @@ export default class Bouffe extends Component<BouffeSignature> {
   }
 
   setRatio = (meal: Meal, event: Event) => {
+    this.isDirty = true
     if (event.target && 'value' in event.target) {
       this.ratios.set(meal, Number(event.target.value as string))
     }
   }
 
   setPurchase = (person: Person, event: Event) => {
+    this.isDirty = true
     if (event.target && 'value' in event.target) {
       this.purchases.set(person, Number(event.target.value as string))
     }
   }
 
   setPrivilege = (person: Person, event: Event) => {
+    this.isDirty = true
     if (event.target && 'value' in event.target) {
       this.privileges.set(person, Number(event.target.value as string))
     }
   }
 
-  get mealCosts() {
-    return this.splitter.calculateMealPrices(
-      this.splitter.calculateMealTotals(this.splitter.privilegeAdjustCounts(this.mealCounts, this.privileges)),
+  doCalculations = () => {
+    const privAdjustedCounts = this.splitter.privilegeAdjustCounts(
+      this.mealCounts,
+      this.privileges
+    )
+    const mealTotals = this.splitter.calculateMealTotals(privAdjustedCounts)
+    this.mealCosts = this.splitter.calculateMealPrices(
+      mealTotals,
       this.purchases,
       this.ratios
     )
+    this.debts = this.splitter.calculateSpent(
+      privAdjustedCounts,
+      this.mealCosts
+    )
+    this.balances = mapMap(
+      this.debts,
+      (person, debt) => (debt ?? 0) - (this.purchases.get(person) ?? 0)
+    )
+    this.isDirty = false
   }
 
-  get debts() {
-    if (this.mealCosts) {
-      return this.splitter.calculateSpent(this.splitter.privilegeAdjustCounts(this.mealCounts, this.privileges), this.mealCosts)
-    }
-  }
-
-  calcBalance = (person: Person) =>
-    (this.debts?.get(person) ?? 0) - (this.purchases.get(person) ?? 0)
-  ;<template>
+  <template>
     <table
       {{saveOnUnload
         (hash
-          mealCounts=this.mealCounts purchases=this.purchases privileges=this.privileges ratios=this.ratios
+          mealCounts=this.mealCounts
+          purchases=this.purchases
+          privileges=this.privileges
+          ratios=this.ratios
         )
       }}
     >
@@ -123,6 +143,7 @@ export default class Bouffe extends Component<BouffeSignature> {
           <tr>
             <th>{{meal}}</th>
             {{#each people as |person|}}
+              {{! template-lint-disable require-input-label }}
               <td>
                 <input
                   type="number"
@@ -139,6 +160,7 @@ export default class Bouffe extends Component<BouffeSignature> {
             <td>
               <input
                 type="number"
+                step="0.01"
                 value={{getMap this.purchases person}}
                 {{on "change" (fn this.setPurchase person)}}
               />
@@ -151,6 +173,7 @@ export default class Bouffe extends Component<BouffeSignature> {
             <td>
               <input
                 type="number"
+                step="0.01"
                 value={{getMap this.privileges person}}
                 {{on "change" (fn this.setPrivilege person)}}
               />
@@ -173,6 +196,7 @@ export default class Bouffe extends Component<BouffeSignature> {
             <td>
               <input
                 type="number"
+                step="0.05"
                 value={{getMap this.ratios meal}}
                 {{on "change" (fn this.setRatio meal)}}
               />
@@ -181,45 +205,51 @@ export default class Bouffe extends Component<BouffeSignature> {
         {{/each}}
       </tbody>
     </table>
-    <table>
-      <thead>
-        <tr>
-          <th />
-          <th>Meal Costs</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each meals as |meal|}}
+    {{#if this.isDirty}}
+      <button type="button" {{on "click" this.doCalculations}}>
+        Calculate
+      </button>
+    {{else}}
+      <table>
+        <thead>
           <tr>
-            <th>{{meal}}</th>
-            <td>
-              {{showCurrency (getMap this.mealCosts meal)}}
-            </td>
+            <th />
+            <th>Meal Costs</th>
           </tr>
-        {{/each}}
-      </tbody>
-    </table>
-    <table>
-      <thead>
-        <tr>
-          <th />
-          <th>Total 'spent'</th>
-          <th>Balance</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each people as |person|}}
+        </thead>
+        <tbody>
+          {{#each meals as |meal|}}
+            <tr>
+              <th>{{meal}}</th>
+              <td>
+                {{showCurrency (getMap this.mealCosts meal)}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      <table>
+        <thead>
           <tr>
-            <th>{{person}}</th>
-            <td>
-              {{showCurrency (getMap this.debts person)}}
-            </td>
-            <td>
-              {{showCurrency (this.calcBalance person)}}
-            </td>
+            <th />
+            <th>Total 'spent'</th>
+            <th>Balance</th>
           </tr>
-        {{/each}}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {{#each people as |person|}}
+            <tr>
+              <th>{{person}}</th>
+              <td>
+                {{showCurrency (getMap this.debts person)}}
+              </td>
+              <td>
+                {{showCurrency (getMap this.balances person)}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
   </template>
 }
