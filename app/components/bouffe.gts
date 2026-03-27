@@ -18,6 +18,8 @@ import SplitterService, {
   type Ratios,
 } from 'of-courses/services/splitter'
 import saveOnUnload, { loadState } from 'of-courses/modifiers/save-on-unload'
+import type DebtRepayService from 'of-courses/services/debt-repay'
+import type { Payment } from 'of-courses/services/debt-repay'
 
 function getMap<K, V>(toGet: Map<K, V> | undefined, key: K): V | undefined {
   return toGet?.get(key)
@@ -34,11 +36,13 @@ export interface BouffeSignature {
 
 export default class Bouffe extends Component<BouffeSignature> {
   @service declare splitter: SplitterService
+  @service declare debtRepay: DebtRepayService
 
   @tracked isDirty = true
   @tracked mealCosts: MealTotals | undefined
   @tracked debts: Purchases | undefined
   @tracked balances: Purchases | undefined
+  @tracked repayments: Payment[] = []
 
   constructor(owner: Owner, args: object) {
     super(owner, args)
@@ -116,6 +120,7 @@ export default class Bouffe extends Component<BouffeSignature> {
       this.debts,
       (person, debt) => (debt ?? 0) - (this.purchases.get(person) ?? 0)
     )
+    this.repayments = this.debtRepay.repay(this.balances)
     this.isDirty = false
   }
 
@@ -250,6 +255,12 @@ export default class Bouffe extends Component<BouffeSignature> {
           {{/each}}
         </tbody>
       </table>
+      <h3>Repayments</h3>
+      <ul>
+        {{#each this.repayments as |repayment|}}
+          <li>{{repayment.from}} pays {{showCurrency repayment.amount}} to {{repayment.to}}</li>
+        {{/each}}
+      </ul>
     {{/if}}
   </template>
 }
