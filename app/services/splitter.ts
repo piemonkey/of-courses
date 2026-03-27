@@ -27,6 +27,13 @@ export function mapMap<K, V, O>(
   )
 }
 
+export function sumValues(input: Purchases | Ratios) {
+  return Array.from(input.values()).reduce(
+    (total, val) => total + val,
+    0
+  )
+}
+
 export default class SplitterService extends Service {
   privilegeAdjustCounts(
     mealCounts: MealCounts,
@@ -60,20 +67,12 @@ export default class SplitterService extends Service {
     purchases: Purchases,
     ratios: Ratios
   ): Ratios {
-    const totalCost = Array.from(purchases.values()).reduce(
-      (total, val) => total + val,
-      0
-    )
-    const ratioScaleFactor = Array.from(ratios.values()).reduce(
-      (total, ratio) => total + ratio,
-      0
-    )
-    return new Map(
-      Array.from(mealTotals.entries()).map(([meal, mealTotal]) => [
-        meal,
-        (totalCost * (ratios.get(meal) ?? 1)) / (ratioScaleFactor * mealTotal),
-      ])
-    )
+    const ratioScaleFactor = sumValues(ratios)
+    const adjustedRatios = mapMap(ratios, ((_meal, ratio) => ratio / ratioScaleFactor))
+    const scaledMeals = mapMap(mealTotals, (meal, count) => count * adjustedRatios.get(meal)!)
+    const totalCost = sumValues(purchases)
+    const totalScaledMeals = sumValues(scaledMeals)
+    return mapMap(adjustedRatios, ((_meal, ratio) => totalCost / totalScaledMeals * ratio))
   }
 
   calculateSpent(mealCounts: MealCounts, mealPrices: Ratios) {

@@ -236,13 +236,13 @@ module('Unit | Service | splitter', function (hooks) {
       const service = this.owner.lookup('service:splitter')
       const mealTotals: MealTotals = new Map([
         ['breakfast', 10],
-        ['lunch', 10],
-        ['dinner', 10],
+        ['lunch', 15],
+        ['dinner', 20],
       ])
       const purchases: Purchases = new Map([
-        ['Gaelle', 5],
-        ['Gobs', 5],
-        ['Leo', 5],
+        ['Gaelle', 10],
+        ['Gobs', 10],
+        ['Leo', 10],
         ['Maïlys', 5],
         ['Rich', 5],
         ['Soura', 5],
@@ -293,17 +293,17 @@ module('Unit | Service | splitter', function (hooks) {
     test('Sums a non-balanced split', function (assert) {
       const service = this.owner.lookup('service:splitter')
       const mealTotals: MealTotals = new Map([
-        ['breakfast', 10],
-        ['lunch', 20],
-        ['dinner', 25],
+        ['breakfast', 12],
+        ['lunch', 24],
+        ['dinner', 28],
       ])
       const purchases: Purchases = new Map([
-        ['Gaelle', 5],
-        ['Gobs', 5],
-        ['Leo', 5],
-        ['Maïlys', 5],
-        ['Rich', 5],
-        ['Soura', 5],
+        ['Gaelle', 40],
+        ['Gobs', 40],
+        ['Leo', 40],
+        ['Maïlys', 40],
+        ['Rich', 40],
+        ['Soura', 40],
       ])
       const ratios: Ratios = new Map([
         ['breakfast', 1],
@@ -313,10 +313,10 @@ module('Unit | Service | splitter', function (hooks) {
 
       const res = service.calculateMealPrices(mealTotals, purchases, ratios)
 
-      assert.equal(res.get('breakfast'), 0.5)
-      assert.equal(res.get('lunch'), 0.5)
-      assert.equal(res.get('dinner'), 0.6)
-      assert.equal(res.size, 3)
+      assert.closeTo(res.get('breakfast'), 10 / 6, 0.01)
+      assert.closeTo(res.get('lunch'), 20 / 6, 0.01)
+      assert.closeTo(res.get('dinner'), 5, 0.01)
+      assert.closeTo(res.size, 3, 0.01)
     })
   })
 
